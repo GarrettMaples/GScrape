@@ -1,9 +1,5 @@
-﻿using GScrape.Clients;
-using GScrape.Requests;
+﻿using GScrape.Requests;
 using MediatR;
-using System;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GScrape
@@ -25,7 +21,8 @@ namespace GScrape
         public async Task DoWork()
         {
             var request = new NeweggScrapeRequest();
-            await _mediator.Send(request);
+            var result = await _mediator.Send(request);
+            await _mediator.Send(result);
         }
     }
 }
