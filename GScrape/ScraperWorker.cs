@@ -1,4 +1,4 @@
-﻿using GScrape.Requests;
+﻿using GScrape.Requests.Newegg;
 using MediatR;
 using System.Threading.Tasks;
 
@@ -21,8 +21,12 @@ namespace GScrape
         public async Task DoWork()
         {
             var request = new NeweggScrapeRequest();
-            var result = await _mediator.Send(request);
-            await _mediator.Send(result);
+            var results = await _mediator.Send(request);
+
+            await foreach (var result in results)
+            {
+                await _mediator.Send(result);
+            }
         }
     }
 }
