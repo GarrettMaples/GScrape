@@ -38,36 +38,39 @@ namespace GScrape
                     cancellationTokenSource.Cancel();
                 });
 
-                var gWowModWorker = serviceProvider.GetService<IScraperWorker>();
-
                 var exceptionCount = 0;
 
-                while (!cancellationTokenSource.IsCancellationRequested)
+                using (var scope = serviceProvider.CreateScope())
                 {
-                    try
+                    var worker = scope.ServiceProvider.GetService<IScraperWorker>();
+
+                    while (!cancellationTokenSource.IsCancellationRequested)
                     {
-                        if (exceptionCount > 25)
+                        try
                         {
-                            logger.LogError("25 errors reached - pausing for an hour");
-                            Thread.Sleep(TimeSpan.FromHours(1));
+                            if (exceptionCount > 25)
+                            {
+                                logger.LogError("25 errors reached - pausing for an hour");
+                                Thread.Sleep(TimeSpan.FromHours(1));
 
+                                exceptionCount = 0;
+                            }
+
+                            logger.LogInformation("Starting Work");
+                            await worker.DoWork();
+                            logger.LogInformation("Ending Work");
+
+                            //Clear exceptions after every success
                             exceptionCount = 0;
+
+                            var randomInterval = RandomNumberGenerator.GetInt32(45, 60);
+                            Thread.Sleep(TimeSpan.FromSeconds(randomInterval));
                         }
-
-                        logger.LogInformation("Starting Work");
-                        await gWowModWorker.DoWork();
-                        logger.LogInformation("Ending Work");
-
-                        //Clear exceptions after every success
-                        exceptionCount = 0;
-
-                        var randomInterval = RandomNumberGenerator.GetInt32(45, 60);
-                        Thread.Sleep(TimeSpan.FromSeconds(randomInterval));
-                    }
-                    catch (Exception e)
-                    {
-                        exceptionCount++;
-                        logger.LogError(e.ToString());
+                        catch (Exception e)
+                        {
+                            exceptionCount++;
+                            logger.LogError(e.ToString());
+                        }
                     }
                 }
 
