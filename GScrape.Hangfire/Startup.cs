@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Linq;
 
 namespace GScrape.Hangfire
@@ -25,6 +26,8 @@ namespace GScrape.Hangfire
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            throw new Exception($"Connection: {Configuration.GetConnectionString("HangfireConnection")}");
+            
             services.AddControllers();
 
             services.AddHangfire(configuration => configuration
