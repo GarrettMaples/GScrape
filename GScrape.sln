@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GScrape", "GScrape\GScrape.csproj", "{C980C041-B80A-4443-9221-D35A8502E2A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GScrape.Hangfire", "GScrape.Hangfire\GScrape.Hangfire.csproj", "{7EE7F4D9-18A9-4E9B-9B91-B80D0CA31B47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{C980C041-B80A-4443-9221-D35A8502E2A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C980C041-B80A-4443-9221-D35A8502E2A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C980C041-B80A-4443-9221-D35A8502E2A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EE7F4D9-18A9-4E9B-9B91-B80D0CA31B47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EE7F4D9-18A9-4E9B-9B91-B80D0CA31B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EE7F4D9-18A9-4E9B-9B91-B80D0CA31B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EE7F4D9-18A9-4E9B-9B91-B80D0CA31B47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

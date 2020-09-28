@@ -92,7 +92,7 @@ namespace GScrape
                 .AddCommandLine(args ?? new string[0])
                 .Build();
             serviceCollection.AddSingleton(config);
-
+            
             serviceCollection.AddMediatR(typeof(Program).Assembly);
 
             ConfigureHttpClients(serviceCollection);

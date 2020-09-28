@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>031d21cb-dbdf-4572-b085-ca421030b9db</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="1.7.*" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.7.*" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GScrape\GScrape.csproj" />
+  </ItemGroup>
+</Project>
