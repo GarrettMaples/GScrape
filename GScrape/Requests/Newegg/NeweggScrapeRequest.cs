@@ -58,14 +58,14 @@ namespace GScrape.Requests.Newegg
 
             foreach (Match itemMatch in itemMatches)
             {
-                var itemPromoMatch = _itemPromoRegex.Match(itemMatch.Value);
+                var itemPromoMatch = _itemPromoRegex.Match(itemMatch.Groups[1].Value);
 
-                if (itemPromoMatch.Success && itemPromoMatch.Value.Contains("OUT OF STOCK", StringComparison.OrdinalIgnoreCase))
+                if (itemPromoMatch.Success && itemPromoMatch.Groups[1].Value.Contains("OUT OF STOCK", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var infoMatch = _itemInfoRegex.Match(itemMatch.Value);
+                var infoMatch = _itemInfoRegex.Match(itemMatch.Groups[1].Value);
 
                 if (infoMatch.Success)
                 {

@@ -1,4 +1,5 @@
 ﻿using GScrape.Clients;
+using GScrape.Requests.OfficeDepot;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,7 @@ namespace GScrape
             ConfigureHttpClients(services);
         }
 
-        private static void ConfigureHttpClients(IServiceCollection serviceCollection)
+        internal static void ConfigureHttpClients(IServiceCollection serviceCollection)
         {
             var retryPolicy = HttpPolicyExtensions
                 .HandleTransientHttpError()
@@ -44,6 +45,15 @@ namespace GScrape
                 .ConfigureHttpClient(client =>
                 {
                     client.BaseAddress = new Uri("https://www.newegg.com");
+                    client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+                })
+                .AddPolicyHandler(retryPolicy)
+                .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
+            
+            serviceCollection.AddRefitClient<IOfficeDepotClient>()
+                .ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri(OfficeDepotScrapeRequestHandler.OfficeDepotBaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                 })
                 .AddPolicyHandler(retryPolicy)

@@ -1,15 +1,15 @@
-﻿using GScrape.Requests.Newegg;
+﻿using GScrape.Requests.OfficeDepot;
 using Hangfire;
 using MediatR;
 using System.Threading.Tasks;
 
 namespace GScrape.Hangfire.Jobs
 {
-    internal class ScrapeNeweggJob : IHangfireJob
+    internal class ScrapeOfficeDepotJob : IHangfireJob
     {
         private readonly IMediator _mediator;
 
-        public ScrapeNeweggJob(IMediator mediator)
+        public ScrapeOfficeDepotJob(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -18,7 +18,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var request = new NeweggRequest();
+            var request = new OfficeDepotRequest();
             await _mediator.Send(request);
         }
     }

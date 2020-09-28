@@ -28,14 +28,14 @@ namespace GScrape.Requests.Newegg
             var html3090SearchPage = await _neweggClient.Get3090SearchPage();
             yield return new NeweggItemSearch
             {
-                Name = "3090 RTX",
+                Name = "Newegg 3090 RTX",
                 Html = html3090SearchPage
             };
 
             var html3080SearchPage = await _neweggClient.Get3080SearchPage();
             yield return new NeweggItemSearch
             {
-                Name = "3080 RTX",
+                Name = "Newegg 3080 RTX",
                 Html = html3080SearchPage
             };
         }
