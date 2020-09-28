@@ -31,6 +31,13 @@ namespace GScrape.Requests.Newegg
                 Name = "3090 RTX",
                 Html = html3090SearchPage
             };
+
+            var html3080SearchPage = await _neweggClient.Get3080SearchPage();
+            yield return new NeweggItemSearch
+            {
+                Name = "3080 RTX",
+                Html = html3080SearchPage
+            };
         }
     }
 }
