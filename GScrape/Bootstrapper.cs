@@ -1,7 +1,9 @@
 ﻿using GScrape.Clients;
 using GScrape.Requests.OfficeDepot;
+using GScrape.Results;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
@@ -20,6 +22,8 @@ namespace GScrape
                 .AddLogging(x => x.AddConsole())
                 .AddLogging()
                 .AddScoped<IScraperWorker, ScraperWorker>()
+                .AddScoped<IEmailer, Emailer>()
+                .AddScoped<IPipelineBehavior<ScrapeResult, Unit>, NotificationCacheBehavior>()
                 .AddLogging(x => x.AddConsole());
 
             services.AddMediatR(typeof(Program).Assembly);
@@ -27,7 +31,7 @@ namespace GScrape
             ConfigureHttpClients(services);
         }
 
-        internal static void ConfigureHttpClients(IServiceCollection serviceCollection)
+        private static void ConfigureHttpClients(IServiceCollection serviceCollection)
         {
             var retryPolicy = HttpPolicyExtensions
                 .HandleTransientHttpError()
@@ -49,15 +53,44 @@ namespace GScrape
                 })
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
-            
+
             serviceCollection.AddRefitClient<IOfficeDepotClient>()
                 .ConfigureHttpClient(client =>
                 {
-                    client.BaseAddress = new Uri(OfficeDepotScrapeRequestHandler.OfficeDepotBaseUrl);
+                    client.BaseAddress = new Uri(OfficeDepotScrapeSearchRequestHandler.OfficeDepotBaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                 })
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
+
+            serviceCollection.AddHttpClient();
+
+            var builder = new HttpClientBuilder(serviceCollection, "DefaultClient");
+
+            builder.Services.AddTransient(s =>
+            {
+                var httpClientFactory = s.GetRequiredService<IHttpClientFactory>();
+                var client = httpClientFactory.CreateClient("DefaultClient");
+
+                client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+
+                return client;
+            });
+
+            builder.AddHttpMessageHandler(() => new PolicyHttpMessageHandler(retryPolicy));
+            builder.AddHttpMessageHandler(() => new PolicyHttpMessageHandler(timeoutPolicy));
+        }
+
+        private class HttpClientBuilder : IHttpClientBuilder
+        {
+            public HttpClientBuilder(IServiceCollection services, string name)
+            {
+                Services = services;
+                Name = name;
+            }
+
+            public string Name { get; }
+            public IServiceCollection Services { get; }
         }
     }
 }

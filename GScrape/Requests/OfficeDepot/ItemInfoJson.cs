@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public partial class ItemInfoJson
+    public class ItemInfoJson
     {
         [JsonProperty("errorMessages")]
         public object[] ErrorMessages { get; set; }
@@ -25,7 +25,7 @@ namespace GScrape.Requests.OfficeDepot
         public Dictionary<string, SkuPriceList> SkuPriceList { get; set; }
     }
 
-    public partial class SkuPriceList
+    public class SkuPriceList
     {
         [JsonProperty("skuId")]
         public string SkuId { get; set; }
@@ -100,7 +100,7 @@ namespace GScrape.Requests.OfficeDepot
         public string InkColorIcon { get; set; }
     }
 
-    public partial class BulkPrice
+    public class BulkPrice
     {
         [JsonProperty("price")]
         public long Price { get; set; }
@@ -115,7 +115,7 @@ namespace GScrape.Requests.OfficeDepot
         public long MinQty { get; set; }
     }
 
-    public partial class GlobalPrice
+    public class GlobalPrice
     {
         [JsonProperty("currencySymbol")]
         public string CurrencySymbol { get; set; }
@@ -352,11 +352,11 @@ namespace GScrape.Requests.OfficeDepot
         public bool PriceMapPopulated { get; set; }
     }
 
-    public partial class Items
+    public class Items
     {
     }
 
-    public partial class RebateData
+    public class RebateData
     {
         [JsonProperty("skuId")]
         public string SkuId { get; set; }
@@ -446,7 +446,7 @@ namespace GScrape.Requests.OfficeDepot
         public bool MailInRebateAmount { get; set; }
     }
 
-    public partial class SellPriceAmount
+    public class SellPriceAmount
     {
         [JsonProperty("amount")]
         public double Amount { get; set; }
@@ -467,7 +467,7 @@ namespace GScrape.Requests.OfficeDepot
         public bool ValidNonZero { get; set; }
     }
 
-    public partial class VersionInfo
+    public class VersionInfo
     {
         [JsonProperty("latestVersion")]
         public string LatestVersion { get; set; }
