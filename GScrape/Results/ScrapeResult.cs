@@ -1,7 +1,5 @@
-﻿using MailKit.Net.Smtp;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MimeKit;
 using System;
 using System.Collections.Generic;
@@ -14,23 +12,47 @@ namespace GScrape.Results
 {
     public class ScrapeResult : IRequest
     {
-        public KeyValuePair<string, IEnumerable<(string itemName, string itemLink)>> Results { get; set; }
+        public ScrapeResult(string requestName, IAsyncEnumerable<ScrapeItem> scrapeItems)
+        {
+            RequestName = requestName;
+            ScrapeItems = scrapeItems ?? AsyncEnumerable.Empty<ScrapeItem>();
+        }
+
+        public string RequestName { get; }
+
+        public IAsyncEnumerable<ScrapeItem> ScrapeItems { get; set; }
+
+        public string ResultId { get; } = nameof(ScrapeResult);
+    }
+
+    public class ScrapeItem
+    {
+        public ScrapeItem(string itemName, string itemLink, string itemId)
+        {
+            ItemName = itemName;
+            ItemLink = itemLink;
+            ItemId = itemId;
+        }
+
+        public string ItemName { get; }
+        public string ItemLink { get; }
+        public string ItemId { get; }
     }
 
     internal class ScrapeResultHandler : IRequestHandler<ScrapeResult>
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<ScrapeResultHandler> _logger;
+        private readonly IEmailer _emailer;
 
-        public ScrapeResultHandler(IConfiguration configuration, ILogger<ScrapeResultHandler> logger)
+        public ScrapeResultHandler(IConfiguration configuration, IEmailer emailer)
         {
             _configuration = configuration;
-            _logger = logger;
+            _emailer = emailer;
         }
 
         public async Task<Unit> Handle(ScrapeResult request, CancellationToken cancellationToken)
         {
-            var results = request.Results.Value.ToList();
+            var results = await request.ScrapeItems.ToListAsync(cancellationToken);
 
             if (!results.Any())
             {
@@ -48,33 +70,20 @@ namespace GScrape.Results
                 message.To.Add(to);
             }
 
-            message.Subject = $"{request.Results.Key} Stock Found!";
+            message.Subject = $"{request.RequestName} Stock Found!";
 
             var stringBuilder = new StringBuilder();
-            foreach (var (itemName, itemLink) in results)
+            foreach (var result in results)
             {
-                stringBuilder.AppendLine($"Name: {itemName}{Environment.NewLine}Link: {itemLink}{Environment.NewLine}");
+                stringBuilder.AppendLine($"Name: {result.ItemName}{Environment.NewLine}Link: {result.ItemLink}{Environment.NewLine}");
             }
 
             var bodyBuilder = new BodyBuilder { TextBody = stringBuilder.ToString() };
             message.Body = bodyBuilder.ToMessageBody();
 
-            await SendEmail(message, cancellationToken);
+            await _emailer.SendEmail(message, cancellationToken);
 
             return Unit.Value;
-        }
-
-        private async Task SendEmail(MimeMessage message, CancellationToken cancellationToken)
-        {
-            using (var client = new SmtpClient())
-            {
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                await client.ConnectAsync(_configuration.GetValue<string>("EmailServerHost"), 587, false, cancellationToken);
-                await client.AuthenticateAsync(_configuration.GetValue<string>("EmailServerUsername"), _configuration.GetValue<string>("EmailServerPassword"), cancellationToken);
-                await client.SendAsync(message, cancellationToken);
-            }
-
-            _logger.LogInformation("Email Sent.");
         }
     }
 }

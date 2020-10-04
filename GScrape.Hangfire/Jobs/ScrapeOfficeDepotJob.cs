@@ -18,7 +18,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var request = new OfficeDepotRequest();
+            var request = new OfficeDepotNotificationRequest();
             await _mediator.Send(request);
         }
     }

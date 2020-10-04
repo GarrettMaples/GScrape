@@ -1,14 +1,8 @@
-﻿using GScrape.Clients;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Extensions.Http;
-using Polly.Timeout;
-using Refit;
 using System;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,6 +64,9 @@ namespace GScrape
                         {
                             exceptionCount++;
                             logger.LogError(e.ToString());
+
+                            var randomInterval = RandomNumberGenerator.GetInt32(45, 60);
+                            Thread.Sleep(TimeSpan.FromSeconds(randomInterval));
                         }
                     }
                 }
@@ -81,10 +78,9 @@ namespace GScrape
         private static ServiceProvider BuildServiceProvider(string[] args)
         {
             var serviceCollection = new ServiceCollection()
-                .AddLogging(x => x.AddConsole())
-                .AddLogging()
-                .AddScoped<IScraperWorker, ScraperWorker>()
-                .AddLogging(x => x.AddConsole());
+                .AddScoped<IScraperWorker, ScraperWorker>();
+
+            Bootstrapper.Boostrap(serviceCollection);
 
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
@@ -92,10 +88,8 @@ namespace GScrape
                 .AddCommandLine(args ?? new string[0])
                 .Build();
             serviceCollection.AddSingleton(config);
-            
-            serviceCollection.AddMediatR(typeof(Program).Assembly);
 
-            Bootstrapper.ConfigureHttpClients(serviceCollection);
+            serviceCollection.AddMediatR(typeof(Program).Assembly);
 
             return serviceCollection.BuildServiceProvider();
         }

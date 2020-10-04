@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace GScrape.Requests.Newegg
@@ -22,13 +23,21 @@ namespace GScrape.Requests.Newegg
             new Regex(@"<div class=""item-branding"">.*?<\/a><\/div><a href=""(?<link>[^""]*)"".*?>(?<name>.*?)<\/a>", RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 TimeSpan.FromSeconds(10));
 
+        private static readonly Regex _addToCartButtonRegex =
+            new Regex(@"<div[^>]+?id=""ProductBuy""[^>]+?class=""product-buy""[^>]*?>.*?<button.*?Add to cart.*?<\/div><\/div><\/div>",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(10));
+
+        private static readonly Regex _itemIdRegex = new Regex("Item=(.*)", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(5));
+
         private readonly IMediator _mediator;
         private readonly ILogger<NeweggScrapeRequestHandler> _logger;
+        private readonly HttpClient _httpClient;
 
-        public NeweggScrapeRequestHandler(IMediator mediator, ILogger<NeweggScrapeRequestHandler> logger)
+        public NeweggScrapeRequestHandler(IMediator mediator, ILogger<NeweggScrapeRequestHandler> logger, HttpClient httpClient)
         {
             _mediator = mediator;
             _logger = logger;
+            _httpClient = httpClient;
         }
 
         protected override async IAsyncEnumerable<ScrapeResult> Handle(NeweggScrapeRequest request)
@@ -39,22 +48,17 @@ namespace GScrape.Requests.Newegg
 
             await foreach (var search in searches)
             {
-                var results = ProcessRequest(search.Html);
+                var scrapeItems = GetItems(search.Html);
 
-                yield return new ScrapeResult
-                {
-                    Results = new KeyValuePair<string, IEnumerable<(string itemName, string itemLink)>>(search.Name, results)
-                };
+                yield return new ScrapeResult(search.Name, scrapeItems);
             }
         }
 
-        private IEnumerable<(string itemName, string itemLink)> ProcessRequest(string htmlItemPage)
+        private async IAsyncEnumerable<ScrapeItem> GetItems(string htmlItemPage)
         {
             var itemMatches = _itemContainerRegex.Matches(htmlItemPage);
 
             _logger.LogInformation($"{itemMatches.Count} item matches found.");
-
-            var results = new List<(string itemName, string itemLink)>();
 
             foreach (Match itemMatch in itemMatches)
             {
@@ -72,15 +76,35 @@ namespace GScrape.Requests.Newegg
                     var link = infoMatch.Groups["link"].Value;
                     var name = infoMatch.Groups["name"].Value;
 
-                    results.Add((itemName: name, itemLink: link));
+                    var itemIdMatch = _itemIdRegex.Match(link);
+
+                    if (!itemIdMatch.Success)
+                    {
+                        _logger.LogError($"Unable to match on item id in URL. URL: {link}");
+                        continue;
+                    }
+
+                    var itemId = itemIdMatch.Groups[1].Value;
+
+                    var detailHtml = await _httpClient.GetStringAsync(link);
+
+                    if (!_addToCartButtonRegex.IsMatch(detailHtml))
+                    {
+                        continue;
+                    }
+
+                    yield return new ScrapeItem
+                    (
+                        name,
+                        link,
+                        itemId
+                    );
                 }
                 else
                 {
-                    results.Add((itemName: "Unknown", itemLink: "Unknown"));
+                    _logger.LogError($"Unable to match on item details. HTML: {itemMatch.Groups[1].Value}");
                 }
             }
-
-            return results;
         }
     }
 }

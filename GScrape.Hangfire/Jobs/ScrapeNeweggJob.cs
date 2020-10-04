@@ -18,7 +18,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var request = new NeweggRequest();
+            var request = new NeweggNotificationRequest();
             await _mediator.Send(request);
         }
     }
