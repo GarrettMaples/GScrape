@@ -26,22 +26,6 @@ namespace GScrape.Requests.BestBuy
             RegexOptions.Compiled | RegexOptions.IgnoreCase,
             TimeSpan.FromSeconds(10));
 
-        private static readonly Regex _itemRegex = new Regex(@"<li[^>]+?class=""sku-item""[^>]+?data-sku-id=""(?<sku>\d+)""[^>]*?>(?<itemContent>.*?)<\/li>",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
-            TimeSpan.FromSeconds(10));
-
-        private static readonly Regex _buttonRegex = new Regex(@"<div[^>]+?class=""fulfillment-add-to-cart-button""[^>]*?>.+>(.+?)<\/button><\/div><\/div>",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromSeconds(10));
-
-        private static readonly Regex _itemLinkRegex = new Regex(@"<a[^>]+?class=""image-link""[^>]+?href=""([^""]+?)""[^>]*?>",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromSeconds(10));
-
-        private static readonly Regex _itemNameRegex = new Regex(@"<a[^>]+?>([^<]+?)<\/a>",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromSeconds(10));
-
         private readonly IMediator _mediator;
         private readonly ILogger<BestBuyScrapeRequestHandler> _logger;
         private readonly HttpClient _httpClient;
