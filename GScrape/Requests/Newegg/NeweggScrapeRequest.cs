@@ -62,14 +62,15 @@ namespace GScrape.Requests.Newegg
 
             foreach (Match itemMatch in itemMatches)
             {
-                var itemPromoMatch = _itemPromoRegex.Match(itemMatch.Groups[1].Value);
+                var item = itemMatch.Groups[1].Value;
+                var itemPromoMatch = _itemPromoRegex.Match(item);
 
                 if (itemPromoMatch.Success && itemPromoMatch.Groups[1].Value.Contains("OUT OF STOCK", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var infoMatch = _itemInfoRegex.Match(itemMatch.Groups[1].Value);
+                var infoMatch = _itemInfoRegex.Match(item);
 
                 if (infoMatch.Success)
                 {
@@ -102,7 +103,7 @@ namespace GScrape.Requests.Newegg
                 }
                 else
                 {
-                    _logger.LogError($"Unable to match on item details. HTML: {itemMatch.Groups[1].Value}");
+                    _logger.LogError($"Unable to match on item details. HTML: {item}");
                 }
             }
         }
