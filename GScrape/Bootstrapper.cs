@@ -1,4 +1,5 @@
 ﻿using GScrape.Clients;
+using GScrape.Requests.BestBuy;
 using GScrape.Requests.OfficeDepot;
 using GScrape.Results;
 using MediatR;
@@ -59,6 +60,29 @@ namespace GScrape
                 {
                     client.BaseAddress = new Uri(OfficeDepotScrapeSearchRequestHandler.OfficeDepotBaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+                })
+                .AddPolicyHandler(retryPolicy)
+                .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
+
+            serviceCollection.AddHttpClient();
+
+            serviceCollection.AddRefitClient<IBestBuyClient>()
+                .ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri(BestBuyScrapeRequestHandler.BestBuyBaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+                    client.DefaultRequestHeaders.Add("Connection", new[] { "keep-alive", "Transfer-Encoding" });
+                    client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", new[] { "1" });
+                    client.DefaultRequestHeaders.Add("User-Agent",
+                        new[] { "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36" });
+                    client.DefaultRequestHeaders.Add("Accept",
+                        new[] { "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9" });
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Site", new[] { "none" });
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Mode", new[] { "navigate" });
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-User", new[] { "?1" });
+                    client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", new[] { "document" });
+                    client.DefaultRequestHeaders.Add("Accept-Encoding", new[] { "UTF-8" });
+                    client.DefaultRequestHeaders.Add("Accept-Language", new[] { "en-US,en;q=0.9" });
                 })
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
