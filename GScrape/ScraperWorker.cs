@@ -1,4 +1,5 @@
-﻿using GScrape.Requests.OfficeDepot;
+﻿using GScrape.Requests.BestBuy;
+using GScrape.Requests.OfficeDepot;
 using MediatR;
 using System.Threading.Tasks;
 
@@ -23,8 +24,11 @@ namespace GScrape
             // var request = new NeweggNotificationRequest();
             // await _mediator.Send(request);
 
-            var officeDepotRequest = new OfficeDepotNotificationRequest();
-            await _mediator.Send(officeDepotRequest);
+            // var officeDepotRequest = new OfficeDepotNotificationRequest();
+            // await _mediator.Send(officeDepotRequest);
+            
+            var bestBuyRequest = new BestBuyNotificationRequest();
+            await _mediator.Send(bestBuyRequest);
         }
     }
 }

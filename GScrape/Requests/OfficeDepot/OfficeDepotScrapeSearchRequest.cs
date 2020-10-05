@@ -29,8 +29,7 @@ namespace GScrape.Requests.OfficeDepot
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
             TimeSpan.FromSeconds(10));
 
-        public static readonly string OfficeDepotBaseUrl = "https://www.officedepot.com";
-        public static readonly string PartialItemUrl = "/a/products/";
+        internal static readonly string OfficeDepotBaseUrl = "https://www.officedepot.com";
 
         private readonly IOfficeDepotClient _officeDepotClient;
 
@@ -45,10 +44,10 @@ namespace GScrape.Requests.OfficeDepot
 
             var scrapeItems = GetItems(itemInfoJson);
 
-            return new ScrapeResult(request.Name, scrapeItems);
+            return new ScrapeResult(request.Name, scrapeItems.ToAsyncEnumerable());
         }
 
-        private async IAsyncEnumerable<ScrapeItem> GetItems(ItemInfoJson itemInfoJson)
+        private IEnumerable<ScrapeItem> GetItems(ItemInfoJson itemInfoJson)
         {
             foreach (var item in itemInfoJson.SkuPriceList.Values)
             {
