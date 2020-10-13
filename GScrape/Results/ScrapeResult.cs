@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 using System;
 using System.Collections.Generic;
@@ -43,11 +44,13 @@ namespace GScrape.Results
     {
         private readonly IConfiguration _configuration;
         private readonly IEmailer _emailer;
+        private readonly ILogger<ScrapeResultHandler> _logger;
 
-        public ScrapeResultHandler(IConfiguration configuration, IEmailer emailer)
+        public ScrapeResultHandler(IConfiguration configuration, IEmailer emailer, ILogger<ScrapeResultHandler> logger)
         {
             _configuration = configuration;
             _emailer = emailer;
+            _logger = logger;
         }
 
         public async Task<Unit> Handle(ScrapeResult request, CancellationToken cancellationToken)
@@ -58,6 +61,8 @@ namespace GScrape.Results
             {
                 return Unit.Value;
             }
+            
+            _logger.LogInformation($"Attempting to send emails for ${request.RequestName}.");
 
             var message = new MimeMessage();
 
@@ -82,6 +87,8 @@ namespace GScrape.Results
             message.Body = bodyBuilder.ToMessageBody();
 
             await _emailer.SendEmail(message, cancellationToken);
+            
+            _logger.LogInformation($"Emails sent for ${request.RequestName}.");
 
             return Unit.Value;
         }
