@@ -58,7 +58,7 @@ namespace GScrape.Requests.Newegg
         {
             var itemMatches = _itemContainerRegex.Matches(htmlItemPage);
 
-            _logger.LogInformation($"{itemMatches.Count} item matches found.");
+            _logger.LogInformation($"{itemMatches.Count.ToString()} item matches found.");
 
             foreach (Match itemMatch in itemMatches)
             {

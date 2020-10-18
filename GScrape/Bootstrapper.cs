@@ -64,8 +64,6 @@ namespace GScrape
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
 
-            serviceCollection.AddHttpClient();
-
             serviceCollection.AddRefitClient<IBestBuyClient>()
                 .ConfigureHttpClient(client =>
                 {
@@ -83,6 +81,15 @@ namespace GScrape
                     client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", new[] { "document" });
                     client.DefaultRequestHeaders.Add("Accept-Encoding", new[] { "UTF-8" });
                     client.DefaultRequestHeaders.Add("Accept-Language", new[] { "en-US,en;q=0.9" });
+                })
+                .AddPolicyHandler(retryPolicy)
+                .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
+            
+            serviceCollection.AddRefitClient<IAmazonClient>()
+                .ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri("https://www.amazon.com/");
+                    client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                 })
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
