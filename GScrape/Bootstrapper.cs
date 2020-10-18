@@ -1,5 +1,5 @@
 ﻿using GScrape.Clients;
-using GScrape.Requests;
+using GScrape.Requests.OfficeDepot;
 using GScrape.Results;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +11,7 @@ using Polly.Timeout;
 using Refit;
 using System;
 using System.Net.Http;
+using ScrapeRequestHandler = GScrape.Requests.BestBuy.ScrapeRequestHandler;
 
 namespace GScrape
 {
@@ -27,14 +28,6 @@ namespace GScrape
                 .AddLogging(x => x.AddConsole());
 
             services.AddMediatR(typeof(Program).Assembly);
-            
-            var types =
-                services.BuildServiceProvider().Get.GetTypesToRegister(typeof(IRequestHandler<,>), assemblies,
-                    new TypesToRegisterOptions { IncludeGenericTypeDefinitions = true });
-
-            container.Register(typeof(IRequestHandler<,>), types);
-            
-            services.AddTransient(typeof(IRequestHandler<NotificationRequest<>>), typeof(NotificationRequestHandler<>))
 
             ConfigureHttpClients(services);
         }
@@ -65,7 +58,7 @@ namespace GScrape
             serviceCollection.AddRefitClient<IOfficeDepotClient>()
                 .ConfigureHttpClient(client =>
                 {
-                    client.BaseAddress = new Uri(Requests.OfficeDepot.ScrapeSearchRequestHandler.BaseUrl);
+                    client.BaseAddress = new Uri(ScrapeSearchRequestHandler.BaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                 })
                 .AddPolicyHandler(retryPolicy)
@@ -74,7 +67,7 @@ namespace GScrape
             serviceCollection.AddRefitClient<IBestBuyClient>()
                 .ConfigureHttpClient(client =>
                 {
-                    client.BaseAddress = new Uri(Requests.BestBuy.ScrapeRequestHandler.BaseUrl);
+                    client.BaseAddress = new Uri(ScrapeRequestHandler.BaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                     client.DefaultRequestHeaders.Add("Connection", new[] { "keep-alive", "Transfer-Encoding" });
                     client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", new[] { "1" });
@@ -97,6 +90,7 @@ namespace GScrape
                 {
                     client.BaseAddress = new Uri(Requests.Amazon.ScrapeRequestHandler.BaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+                    client.DefaultRequestHeaders.Add("Accept-Encoding", new[] { "UTF-8" });
                 })
                 .AddPolicyHandler(retryPolicy)
                 .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.

@@ -19,10 +19,10 @@ namespace GScrape.Requests.Amazon
         private static readonly Regex _productPayloadRegex =
             new Regex(@"var\s+?config\s+?=(\s*?{.+?});", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(15));
 
+        internal static readonly string BaseUrl = "https://www.amazon.com";
+
         private readonly IMediator _mediator;
         private readonly ILogger<ScrapeRequestHandler> _logger;
-        
-        internal static readonly string BaseUrl = "https://www.amazon.com";
 
         public ScrapeRequestHandler(IMediator mediator, ILogger<ScrapeRequestHandler> logger)
         {
