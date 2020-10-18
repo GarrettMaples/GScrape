@@ -1,4 +1,5 @@
-﻿using GScrape.Results;
+﻿using GScrape.Requests.BestBuy.Json;
+using GScrape.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,11 +12,11 @@ using System.Web;
 
 namespace GScrape.Requests.BestBuy
 {
-    public class BestBuyScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
     {
     }
 
-    internal class BestBuyScrapeRequestHandler : RequestHandler<BestBuyScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
     {
         private static readonly Regex _itemFulfillmentRegex = new Regex(@"initializer.initializeComponent\({""creatorNamespace"":""fulfillment"".*?""({\\""app.+?}})"",",
             RegexOptions.Compiled | RegexOptions.IgnoreCase,
@@ -26,21 +27,22 @@ namespace GScrape.Requests.BestBuy
             RegexOptions.Compiled | RegexOptions.IgnoreCase,
             TimeSpan.FromSeconds(10));
 
-        private readonly IMediator _mediator;
-        private readonly ILogger<BestBuyScrapeRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
-        internal static readonly string BestBuyBaseUrl = "https://www.bestbuy.com";
+        internal static readonly string BaseUrl = "https://www.bestbuy.com";
 
-        public BestBuyScrapeRequestHandler(IMediator mediator, ILogger<BestBuyScrapeRequestHandler> logger, HttpClient httpClient)
+        private readonly IMediator _mediator;
+        private readonly ILogger<ScrapeRequestHandler> _logger;
+        private readonly HttpClient _httpClient;
+
+        public ScrapeRequestHandler(IMediator mediator, ILogger<ScrapeRequestHandler> logger, HttpClient httpClient)
         {
             _mediator = mediator;
             _logger = logger;
             _httpClient = httpClient;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(BestBuyScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
         {
-            var searchRequest = new BestBuyItemSearchRequest();
+            var searchRequest = new ItemSearchRequest();
 
             var searches = await _mediator.Send(searchRequest);
 
@@ -54,19 +56,19 @@ namespace GScrape.Requests.BestBuy
 
         private IEnumerable<ScrapeItem> GetItems(string htmlItemPage)
         {
-            var itemFulfillmentCollection = Get<ItemFulfillmentJson>(_itemFulfillmentRegex.Matches(htmlItemPage)).ToList();
+            var itemFulfillmentPayload = Get<ItemFulfillmentPayload>(_itemFulfillmentRegex.Matches(htmlItemPage)).ToList();
             var itemShopJsonDictionary = GetItemShopJsonDictionary(_itemShopRegex.Matches(htmlItemPage));
 
-            _logger.LogInformation($"{itemFulfillmentCollection.Count} item matches found.");
+            _logger.LogInformation($"{itemFulfillmentPayload.Count.ToString()} item matches found.");
 
-            foreach (var item in itemFulfillmentCollection)
+            foreach (var item in itemFulfillmentPayload)
             {
                 if (!item.ButtonState_.BSState.Contains("ADD_TO_CART", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var itemLink = new Uri(new Uri(BestBuyBaseUrl), HttpUtility.UrlDecode(item.App_.SkuPdpUrl.Replace(@"\u002F", @"\")));
+                var itemLink = new Uri(new Uri(BaseUrl), HttpUtility.UrlDecode(item.App_.SkuPdpUrl.Replace(@"\u002F", @"\")));
 
                 var itemId = item.Items_.FirstOrDefault()?.SkuId;
 
@@ -90,16 +92,16 @@ namespace GScrape.Requests.BestBuy
             foreach (Match itemMatch in matches)
             {
                 var content = itemMatch.Groups[1].Value.Replace(@"\""", @"""");
-                yield return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions {  });
+                yield return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions());
             }
         }
 
-        private Dictionary<string, ItemShopJson> GetItemShopJsonDictionary(MatchCollection matches)
+        private Dictionary<string, ItemShopPayload> GetItemShopJsonDictionary(MatchCollection matches)
         {
-            var itemShopCollection = Get<ItemShopJson>(matches);
-            var result = new Dictionary<string, ItemShopJson>();
+            var itemShopPayload = Get<ItemShopPayload>(matches);
+            var result = new Dictionary<string, ItemShopPayload>();
 
-            foreach (var item in itemShopCollection)
+            foreach (var item in itemShopPayload)
             {
                 if (item.Sku_ != null)
                 {

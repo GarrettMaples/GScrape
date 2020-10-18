@@ -1,4 +1,5 @@
-﻿using GScrape.Requests.Newegg;
+﻿using GScrape.Requests;
+using GScrape.Requests.Newegg;
 using Hangfire;
 using MediatR;
 using System.Threading.Tasks;
@@ -18,8 +19,8 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var request = new NeweggNotificationRequest();
-            await _mediator.Send(request);
+            var notificationRequest = new NotificationRequest(() => new ScrapeRequest());
+            await _mediator.Send(notificationRequest);
         }
     }
 }

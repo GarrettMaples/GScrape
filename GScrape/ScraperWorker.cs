@@ -1,6 +1,7 @@
-﻿using MediatR;
+﻿using GScrape.Requests;
+using GScrape.Requests.Amazon;
+using MediatR;
 using System.Threading.Tasks;
-using GScrape.Requests;
 
 namespace GScrape
 {
@@ -20,16 +21,16 @@ namespace GScrape
 
         public async Task DoWork()
         {
-            // var request = new NeweggNotificationRequest();
+            // var request = new NotificationRequest();
             // await _mediator.Send(request);
 
-            // var officeDepotRequest = new OfficeDepotNotificationRequest();
+            // var officeDepotRequest = new NotificationRequest();
             // await _mediator.Send(officeDepotRequest);
-            
-            // var bestBuyRequest = new BestBuyNotificationRequest();
-            // await _mediator.Send(bestBuyRequest);
 
-            var amazonNotificationRequest = new Requests.Amazon.NotificationRequest();
+            // var bestBuyNotificationRequest = new NotificationRequest(() => new Requests.BestBuy.ScrapeRequest());
+            // await _mediator.Send(bestBuyNotificationRequest);
+
+            var amazonNotificationRequest = new NotificationRequest(() => new ScrapeRequest());
             await _mediator.Send(amazonNotificationRequest);
         }
     }

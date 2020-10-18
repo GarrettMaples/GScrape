@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace GScrape.Requests.BestBuy
+namespace GScrape.Requests.BestBuy.Json
 {
-    public class ItemFulfillmentJson
+    public class ItemFulfillmentPayload
     {
         [JsonPropertyName("app")]
         public App App_ { get; set; }

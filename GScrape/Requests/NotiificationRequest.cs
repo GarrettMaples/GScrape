@@ -1,11 +1,20 @@
-﻿using MediatR;
+﻿using GScrape.Results;
+using MediatR;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GScrape.Requests.Amazon
+namespace GScrape.Requests
 {
     public class NotificationRequest : IRequest
     {
+        public NotificationRequest(Func<IRequest<IAsyncEnumerable<ScrapeResult>>> scrapeRequestFactory)
+        {
+            ScrapeRequestFactory = scrapeRequestFactory;
+        }
+
+        public Func<IRequest<IAsyncEnumerable<ScrapeResult>>> ScrapeRequestFactory { get; }
     }
 
     internal class NotificationRequestHandler : IRequestHandler<NotificationRequest>
@@ -17,10 +26,9 @@ namespace GScrape.Requests.Amazon
             _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(NotificationRequest notificationRequest, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(NotificationRequest request, CancellationToken cancellationToken)
         {
-            var scrapeRequest = new ScrapeRequest();
-            var results = await _mediator.Send(scrapeRequest, cancellationToken);
+            var results = await _mediator.Send(request.ScrapeRequestFactory(), cancellationToken);
 
             await foreach (var result in results.WithCancellation(cancellationToken))
             {

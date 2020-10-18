@@ -1,4 +1,5 @@
 ﻿using GScrape.Clients;
+using GScrape.Requests.OfficeDepot.Json;
 using GScrape.Results;
 using MediatR;
 using System;
@@ -10,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class OfficeDepotScrapeSearchRequest : IRequest<ScrapeResult>
+    public class ScrapeSearchRequest : IRequest<ScrapeResult>
     {
-        public OfficeDepotScrapeSearchRequest(string name, string html)
+        public ScrapeSearchRequest(string name, string html)
         {
             Name = name;
             Html = html;
@@ -22,23 +23,23 @@ namespace GScrape.Requests.OfficeDepot
         public string Html { get; }
     }
 
-    internal class OfficeDepotScrapeSearchRequestHandler : IRequestHandler<OfficeDepotScrapeSearchRequest, ScrapeResult>
+    internal class ScrapeSearchRequestHandler : IRequestHandler<ScrapeSearchRequest, ScrapeResult>
     {
         private static readonly Regex _skuRegex = new Regex(
             @"<input[^>]+?type=""hidden""[^>]+?id=""hiddenSkuId\d+?""[^>]+?value=""(\d*?)""[^>]*?>",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
             TimeSpan.FromSeconds(10));
 
-        internal static readonly string OfficeDepotBaseUrl = "https://www.officedepot.com";
+        internal static readonly string BaseUrl = "https://www.officedepot.com";
 
         private readonly IOfficeDepotClient _officeDepotClient;
 
-        public OfficeDepotScrapeSearchRequestHandler(IOfficeDepotClient officeDepotClient)
+        public ScrapeSearchRequestHandler(IOfficeDepotClient officeDepotClient)
         {
             _officeDepotClient = officeDepotClient;
         }
 
-        public async Task<ScrapeResult> Handle(OfficeDepotScrapeSearchRequest request, CancellationToken cancellationToken)
+        public async Task<ScrapeResult> Handle(ScrapeSearchRequest request, CancellationToken cancellationToken)
         {
             var itemInfoJson = await GetItemInfoJson(request.Html);
 
@@ -47,18 +48,18 @@ namespace GScrape.Requests.OfficeDepot
             return new ScrapeResult(request.Name, scrapeItems.ToAsyncEnumerable());
         }
 
-        private IEnumerable<ScrapeItem> GetItems(ItemInfoJson itemInfoJson)
+        private IEnumerable<ScrapeItem> GetItems(ItemInfoPayload itemInfoPayload)
         {
-            foreach (var item in itemInfoJson.SkuPriceList.Values)
+            foreach (var item in itemInfoPayload.SkuPriceList.Values)
             {
                 if (item.AvailableQty > 0)
                 {
-                    yield return new ScrapeItem(item.ShortDescription, new Uri(new Uri(OfficeDepotBaseUrl), item.SkuUrl).AbsoluteUri, item.SkuId);
+                    yield return new ScrapeItem(item.ShortDescription, new Uri(new Uri(BaseUrl), item.SkuUrl).AbsoluteUri, item.SkuId);
                 }
             }
         }
 
-        private async Task<ItemInfoJson> GetItemInfoJson(string html)
+        private async Task<ItemInfoPayload> GetItemInfoJson(string html)
         {
             var skuMatches = _skuRegex.Matches(html);
 

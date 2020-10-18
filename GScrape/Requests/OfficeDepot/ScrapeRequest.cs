@@ -4,22 +4,22 @@ using System.Collections.Generic;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class OfficeDepotScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
     {
     }
 
-    internal class OfficeDepotScrapeRequestHandler : RequestHandler<OfficeDepotScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
     {
         private readonly IMediator _mediator;
 
-        public OfficeDepotScrapeRequestHandler(IMediator mediator)
+        public ScrapeRequestHandler(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(OfficeDepotScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
         {
-            var req = new OfficeDepotItemSearchRequest();
+            var req = new ItemSearchRequest();
 
             var searches = await _mediator.Send(req);
 
@@ -27,12 +27,12 @@ namespace GScrape.Requests.OfficeDepot
             {
                 if (search.IsDetailsPage)
                 {
-                    var detailsRequest = new OfficeDepotScrapeDetailRequest(search.Name, search.Html);
+                    var detailsRequest = new ScrapeDetailRequest(search.Name, search.Html);
                     yield return await _mediator.Send(detailsRequest);
                 }
                 else
                 {
-                    var searchRequest = new OfficeDepotScrapeSearchRequest(search.Name, search.Html);
+                    var searchRequest = new ScrapeSearchRequest(search.Name, search.Html);
                     yield return await _mediator.Send(searchRequest);
                 }
             }
