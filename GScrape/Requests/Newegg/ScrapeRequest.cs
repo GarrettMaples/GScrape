@@ -8,11 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace GScrape.Requests.Newegg
 {
-    public class NeweggScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
     {
     }
 
-    internal class NeweggScrapeRequestHandler : RequestHandler<NeweggScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
     {
         private static readonly Regex _itemContainerRegex = new Regex(@"<div class=""item-container"">(.*?)<\/div><\/div><\/div>", RegexOptions.Compiled | RegexOptions.IgnoreCase,
             TimeSpan.FromSeconds(10));
@@ -30,19 +30,19 @@ namespace GScrape.Requests.Newegg
         private static readonly Regex _itemIdRegex = new Regex("Item=(.*)", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(5));
 
         private readonly IMediator _mediator;
-        private readonly ILogger<NeweggScrapeRequestHandler> _logger;
+        private readonly ILogger<ScrapeRequestHandler> _logger;
         private readonly HttpClient _httpClient;
 
-        public NeweggScrapeRequestHandler(IMediator mediator, ILogger<NeweggScrapeRequestHandler> logger, HttpClient httpClient)
+        public ScrapeRequestHandler(IMediator mediator, ILogger<ScrapeRequestHandler> logger, HttpClient httpClient)
         {
             _mediator = mediator;
             _logger = logger;
             _httpClient = httpClient;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(NeweggScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
         {
-            var searchRequest = new NeweggItemSearchRequest();
+            var searchRequest = new ItemSearchRequest();
 
             var searches = await _mediator.Send(searchRequest);
 

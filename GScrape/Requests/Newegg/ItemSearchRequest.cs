@@ -4,36 +4,30 @@ using System.Collections.Generic;
 
 namespace GScrape.Requests.Newegg
 {
-    public class NeweggItemSearchRequest : IRequest<IAsyncEnumerable<NeweggItemSearch>>
+    public class ItemSearchRequest : IRequest<IAsyncEnumerable<ItemSearch>>
     {
     }
 
-    public class NeweggItemSearch
-    {
-        public string Name { get; set; }
-        public string Html { get; set; }
-    }
-
-    internal class NeweggItemSearchRequestHandler : RequestHandler<NeweggItemSearchRequest, IAsyncEnumerable<NeweggItemSearch>>
+    internal class ItemSearchRequestHandler : RequestHandler<ItemSearchRequest, IAsyncEnumerable<ItemSearch>>
     {
         private readonly INeweggClient _neweggClient;
 
-        public NeweggItemSearchRequestHandler(INeweggClient neweggClient)
+        public ItemSearchRequestHandler(INeweggClient neweggClient)
         {
             _neweggClient = neweggClient;
         }
 
-        protected override async IAsyncEnumerable<NeweggItemSearch> Handle(NeweggItemSearchRequest request)
+        protected override async IAsyncEnumerable<ItemSearch> Handle(ItemSearchRequest request)
         {
             var html3090SearchPage = await _neweggClient.Get3090SearchPage();
-            yield return new NeweggItemSearch
+            yield return new ItemSearch
             {
                 Name = "Newegg 3090 RTX",
                 Html = html3090SearchPage
             };
 
             var html3080SearchPage = await _neweggClient.Get3080SearchPage();
-            yield return new NeweggItemSearch
+            yield return new ItemSearch
             {
                 Name = "Newegg 3080 RTX",
                 Html = html3080SearchPage

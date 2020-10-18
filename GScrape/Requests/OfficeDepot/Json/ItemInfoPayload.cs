@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace GScrape.Requests.OfficeDepot
+namespace GScrape.Requests.OfficeDepot.Json
 {
-    public class ItemInfoJson
+    public class ItemInfoPayload
     {
         [JsonProperty("errorMessages")]
         public object[] ErrorMessages { get; set; }

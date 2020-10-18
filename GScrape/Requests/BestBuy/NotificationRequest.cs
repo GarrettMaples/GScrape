@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 
 namespace GScrape.Requests.BestBuy
 {
-    public class BestBuyNotificationRequest : IRequest
+    public class NotificationRequest : IRequest
     {
     }
 
-    internal class BestBuyNotificationRequestHandler : IRequestHandler<BestBuyNotificationRequest>
+    internal class NotificationRequestHandler : IRequestHandler<NotificationRequest>
     {
         private readonly IMediator _mediator;
 
-        public BestBuyNotificationRequestHandler(IMediator mediator)
+        public NotificationRequestHandler(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(BestBuyNotificationRequest notificationRequest, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(NotificationRequest notificationRequest, CancellationToken cancellationToken)
         {
-            var bestBuyScrapeRequest = new BestBuyScrapeRequest();
+            var bestBuyScrapeRequest = new ScrapeRequest();
             var results = await _mediator.Send(bestBuyScrapeRequest, cancellationToken);
 
             await foreach (var result in results.WithCancellation(cancellationToken))

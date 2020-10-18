@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 
 namespace GScrape.Requests.Newegg
 {
-    public class NeweggNotificationRequest : IRequest
+    public class NotificationRequest : IRequest
     {
     }
 
-    internal class NeweggNotificationRequestHandler : IRequestHandler<NeweggNotificationRequest>
+    internal class NotificationRequestHandler : IRequestHandler<NotificationRequest>
     {
         private readonly IMediator _mediator;
 
-        public NeweggNotificationRequestHandler(IMediator mediator)
+        public NotificationRequestHandler(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(NeweggNotificationRequest notificationRequest, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(NotificationRequest notificationRequest, CancellationToken cancellationToken)
         {
-            var neweggScrapeRequest = new NeweggScrapeRequest();
+            var neweggScrapeRequest = new ScrapeRequest();
             var results = await _mediator.Send(neweggScrapeRequest, cancellationToken);
 
             await foreach (var result in results.WithCancellation(cancellationToken))

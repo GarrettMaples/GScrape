@@ -1,4 +1,4 @@
-﻿using GScrape.Requests.OfficeDepot;
+﻿using GScrape.Requests.OfficeDepot.Json;
 using Refit;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,6 +11,6 @@ namespace GScrape.Clients
         public Task<HttpResponseMessage> Get3090SearchPage();
 
         [Get("/mobile/getAjaxPriceListFromService.do?items={skus}&mapBySkuId=true&includeOos=true")]
-        public Task<ItemInfoJson> GetItemInfoJson(string skus);
+        public Task<ItemInfoPayload> GetItemInfoJson(string skus);
     }
 }

@@ -61,7 +61,7 @@ namespace GScrape.Results
             {
                 return Unit.Value;
             }
-            
+
             _logger.LogInformation($"Attempting to send emails for ${request.RequestName}.");
 
             var message = new MimeMessage();
@@ -87,7 +87,7 @@ namespace GScrape.Results
             message.Body = bodyBuilder.ToMessageBody();
 
             await _emailer.SendEmail(message, cancellationToken);
-            
+
             _logger.LogInformation($"Emails sent for ${request.RequestName}.");
 
             return Unit.Value;

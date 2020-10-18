@@ -5,27 +5,25 @@ using System.Collections.Generic;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class OfficeDepotItemSearchRequest : IRequest<IAsyncEnumerable<OfficeDepotItemSearch>>
+    public class ItemSearchRequest : IRequest<IAsyncEnumerable<OfficeDepotItemSearch>>
     {
     }
 
-    public class OfficeDepotItemSearch
+    public class OfficeDepotItemSearch : ItemSearch
     {
-        public string Name { get; set; }
-        public string Html { get; set; }
         public bool IsDetailsPage { get; set; }
     }
 
-    internal class OfficeDepotItemSearchRequestHandler : RequestHandler<OfficeDepotItemSearchRequest, IAsyncEnumerable<OfficeDepotItemSearch>>
+    internal class ItemSearchRequestHandler : RequestHandler<ItemSearchRequest, IAsyncEnumerable<OfficeDepotItemSearch>>
     {
         private readonly IOfficeDepotClient _officeDepotClient;
 
-        public OfficeDepotItemSearchRequestHandler(IOfficeDepotClient officeDepotClient)
+        public ItemSearchRequestHandler(IOfficeDepotClient officeDepotClient)
         {
             _officeDepotClient = officeDepotClient;
         }
 
-        protected override async IAsyncEnumerable<OfficeDepotItemSearch> Handle(OfficeDepotItemSearchRequest request)
+        protected override async IAsyncEnumerable<OfficeDepotItemSearch> Handle(ItemSearchRequest request)
         {
             var responseMessage = await _officeDepotClient.Get3090SearchPage();
 

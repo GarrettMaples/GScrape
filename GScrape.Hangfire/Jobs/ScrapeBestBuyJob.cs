@@ -18,7 +18,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var request = new BestBuyNotificationRequest();
+            var request = new NotificationRequest();
             await _mediator.Send(request);
         }
     }

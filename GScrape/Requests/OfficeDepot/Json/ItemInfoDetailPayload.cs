@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace GScrape.Requests.OfficeDepot
+namespace GScrape.Requests.OfficeDepot.Json
 {
-    public class ItemInfoDetailJson
+    public class ItemInfoDetailPayload
     {
         [JsonPropertyName("event")]
         public string Event { get; set; }

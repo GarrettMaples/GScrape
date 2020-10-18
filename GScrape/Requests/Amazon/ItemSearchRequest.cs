@@ -8,12 +8,6 @@ namespace GScrape.Requests.Amazon
     {
     }
 
-    public class ItemSearch
-    {
-        public string Name { get; set; }
-        public string Html { get; set; }
-    }
-
     internal class ItemSearchRequestHandler : RequestHandler<ItemSearchRequest, IAsyncEnumerable<ItemSearch>>
     {
         private readonly IAmazonClient _client;
@@ -31,7 +25,7 @@ namespace GScrape.Requests.Amazon
                 Name = "3090 RTX",
                 Html = html3090SearchPage
             };
-            
+
             var html3080SearchPage = await _client.Get3080Page();
             yield return new ItemSearch
             {

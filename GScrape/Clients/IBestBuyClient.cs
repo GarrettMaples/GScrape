@@ -7,7 +7,7 @@ namespace GScrape.Clients
     {
         [Get("/site/searchpage.jsp?st=3090+rtx")]
         Task<string> Get3090SearchPage();
-        
+
         [Get("/site/searchpage.jsp?st=3080+rtx")]
         Task<string> Get3080SearchPage();
     }

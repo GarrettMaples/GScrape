@@ -16,9 +16,13 @@ namespace GScrape.Requests.Amazon
 
     internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
     {
+        private static readonly Regex _productPayloadRegex =
+            new Regex(@"var\s+?config\s+?=(\s*?{.+?});", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(15));
+
         private readonly IMediator _mediator;
         private readonly ILogger<ScrapeRequestHandler> _logger;
-        private static readonly Regex _productPayloadRegex = new Regex(@"var\s+?config\s+?=(\s*?{.+?});", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(15));
+        
+        internal static readonly string BaseUrl = "https://www.amazon.com";
 
         public ScrapeRequestHandler(IMediator mediator, ILogger<ScrapeRequestHandler> logger)
         {
@@ -39,7 +43,7 @@ namespace GScrape.Requests.Amazon
                 {
                     throw new InvalidOperationException($"Unable to find product payload JSON. HTML: {itemSearch.Html}");
                 }
-                
+
                 var payload = JsonSerializer.Deserialize<Payload>(payloadJsonMatches[1].Groups[1].Value);
                 var scrapeItems = ScrapeItems(payload);
 
@@ -59,7 +63,7 @@ namespace GScrape.Requests.Amazon
                         continue;
                     }
 
-                    var itemLink = product.Links.ViewOnAmazon.Url;
+                    var itemLink = new Uri(new Uri(BaseUrl), product.Links.ViewOnAmazon.Url).AbsoluteUri;
                     var itemId = product.Asin;
                     yield return new ScrapeItem(product.Title.DisplayString, itemLink, itemId);
                 }
