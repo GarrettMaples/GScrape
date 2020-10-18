@@ -1,7 +1,6 @@
-﻿using GScrape.Requests.BestBuy;
-using GScrape.Requests.OfficeDepot;
-using MediatR;
+﻿using MediatR;
 using System.Threading.Tasks;
+using GScrape.Requests;
 
 namespace GScrape
 {
@@ -27,8 +26,11 @@ namespace GScrape
             // var officeDepotRequest = new OfficeDepotNotificationRequest();
             // await _mediator.Send(officeDepotRequest);
             
-            var bestBuyRequest = new BestBuyNotificationRequest();
-            await _mediator.Send(bestBuyRequest);
+            // var bestBuyRequest = new BestBuyNotificationRequest();
+            // await _mediator.Send(bestBuyRequest);
+
+            var amazonNotificationRequest = new Requests.Amazon.NotificationRequest();
+            await _mediator.Send(amazonNotificationRequest);
         }
     }
 }
