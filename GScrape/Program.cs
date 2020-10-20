@@ -57,7 +57,7 @@ namespace GScrape
                             //Clear exceptions after every success
                             exceptionCount = 0;
 
-                            var randomInterval = RandomNumberGenerator.GetInt32(45, 60);
+                            var randomInterval = RandomNumberGenerator.GetInt32(10, 15);
                             Thread.Sleep(TimeSpan.FromSeconds(randomInterval));
                         }
                         catch (Exception e)
@@ -65,7 +65,7 @@ namespace GScrape
                             exceptionCount++;
                             logger.LogError(e.ToString());
 
-                            var randomInterval = RandomNumberGenerator.GetInt32(45, 60);
+                            var randomInterval = RandomNumberGenerator.GetInt32(10, 15);
                             Thread.Sleep(TimeSpan.FromSeconds(randomInterval));
                         }
                     }
@@ -80,7 +80,7 @@ namespace GScrape
             var serviceCollection = new ServiceCollection()
                 .AddScoped<IScraperWorker, ScraperWorker>();
 
-            Bootstrapper.Boostrap(serviceCollection);
+            serviceCollection.AddGScrape();
 
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)

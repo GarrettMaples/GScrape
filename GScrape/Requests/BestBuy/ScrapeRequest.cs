@@ -12,11 +12,11 @@ using System.Web;
 
 namespace GScrape.Requests.BestBuy
 {
-    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
     }
 
-    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
         private static readonly Regex _itemFulfillmentRegex = new Regex(@"initializer.initializeComponent\({""creatorNamespace"":""fulfillment"".*?""({\\""app.+?}})"",",
             RegexOptions.Compiled | RegexOptions.IgnoreCase,
@@ -40,7 +40,7 @@ namespace GScrape.Requests.BestBuy
             _httpClient = httpClient;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult<ScrapeItem>> Handle(ScrapeRequest request)
         {
             var searchRequest = new ItemSearchRequest();
 
@@ -50,7 +50,7 @@ namespace GScrape.Requests.BestBuy
             {
                 var scrapeItems = GetItems(search.Html);
 
-                yield return new ScrapeResult(search.Name, scrapeItems.ToAsyncEnumerable());
+                yield return new ScrapeResult<ScrapeItem>(search.Name, scrapeItems.ToAsyncEnumerable());
             }
         }
 

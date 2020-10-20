@@ -1,5 +1,6 @@
 ﻿using GScrape.Requests;
 using GScrape.Requests.Amazon;
+using GScrape.Results;
 using Hangfire;
 using MediatR;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var notificationRequest = new NotificationRequest(() => new ScrapeRequest());
+            var notificationRequest = new NotificationRequest<ScrapeItem>(() => new ScrapeRequest());
             await _mediator.Send(notificationRequest);
         }
     }

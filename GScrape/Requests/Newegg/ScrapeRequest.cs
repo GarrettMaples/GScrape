@@ -8,11 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace GScrape.Requests.Newegg
 {
-    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
     }
 
-    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
         private static readonly Regex _itemContainerRegex = new Regex(@"<div class=""item-container"">(.*?)<\/div><\/div><\/div>", RegexOptions.Compiled | RegexOptions.IgnoreCase,
             TimeSpan.FromSeconds(10));
@@ -40,7 +40,7 @@ namespace GScrape.Requests.Newegg
             _httpClient = httpClient;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult<ScrapeItem>> Handle(ScrapeRequest request)
         {
             var searchRequest = new ItemSearchRequest();
 
@@ -50,7 +50,7 @@ namespace GScrape.Requests.Newegg
             {
                 var scrapeItems = GetItems(search.Html);
 
-                yield return new ScrapeResult(search.Name, scrapeItems);
+                yield return new ScrapeResult<ScrapeItem>(search.Name, scrapeItems);
             }
         }
 

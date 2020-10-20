@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace GScrape
 {
-    public class NotificationCacheBehavior : IPipelineBehavior<ScrapeResult, Unit>
+    public class NotificationCacheBehavior<T> : IPipelineBehavior<ScrapeResult<T>, Unit> where T : ScrapeItem
     {
-        private readonly Dictionary<string, ScrapeCache> _cache = new Dictionary<string, ScrapeCache>();
+        protected ConcurrentDictionary<string, ConcurrentDictionary<string, ScrapeCacheItem>> Cache { get; } = new ConcurrentDictionary<string, ConcurrentDictionary<string, ScrapeCacheItem>>();
         private readonly IEmailer _emailer;
         private readonly IConfiguration _configuration;
 
@@ -23,13 +24,13 @@ namespace GScrape
             _configuration = configuration;
         }
 
-        public async Task<Unit> Handle(ScrapeResult request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public async Task<Unit> Handle(ScrapeResult<T> request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
         {
             var requestScrapeItems = await request.ScrapeItems.ToListAsync(cancellationToken);
-            var newScrapeItems = BuildNewScrapeItems(request.ResultId, requestScrapeItems).ToList();
+            var newScrapeItems = GetScrapeItemsToNotifyAbout(request.ResultId, requestScrapeItems).ToList();
 
-            await NotifyOutOfStock(request, requestScrapeItems, cancellationToken);
-            PopulateInStockCache(request, newScrapeItems);
+            await Notify(request, requestScrapeItems, cancellationToken);
+            PopulateCache(request, requestScrapeItems, newScrapeItems);
 
             // Update request object
             request.ScrapeItems = newScrapeItems.ToAsyncEnumerable();
@@ -37,18 +38,18 @@ namespace GScrape
             return await next();
         }
 
-        private IEnumerable<ScrapeItem> BuildNewScrapeItems(string resultId, ICollection<ScrapeItem> requestScrapeItems)
+        protected virtual IEnumerable<T> GetScrapeItemsToNotifyAbout(string resultId, ICollection<T> requestScrapeItems)
         {
             if (!requestScrapeItems.Any())
             {
                 yield break;
             }
 
-            if (_cache.ContainsKey(resultId))
+            if (Cache.ContainsKey(resultId))
             {
                 foreach (var scrapeItem in requestScrapeItems)
                 {
-                    if (!_cache[resultId].ScrapeCacheItems.ContainsKey(scrapeItem.ItemId))
+                    if (!Cache[resultId].ContainsKey(scrapeItem.ItemId))
                     {
                         yield return scrapeItem;
                     }
@@ -63,15 +64,15 @@ namespace GScrape
             }
         }
 
-        private async Task NotifyOutOfStock(ScrapeResult request, IEnumerable<ScrapeItem> scrapeItems, CancellationToken cancellationToken)
+        protected virtual async Task Notify(ScrapeResult<T> request, IEnumerable<T> scrapeItems, CancellationToken cancellationToken)
         {
-            if (!_cache.ContainsKey(request.ResultId))
+            if (!Cache.ContainsKey(request.ResultId))
             {
                 return;
             }
 
             var newScrapeItemIds = scrapeItems.Select(x => x.ItemId).ToList();
-            var existingScrapeItemIds = _cache[request.ResultId].ScrapeCacheItems.Keys;
+            var existingScrapeItemIds = Cache[request.ResultId].Keys;
 
             var itemsToRemove = existingScrapeItemIds.Except(newScrapeItemIds).ToList();
 
@@ -97,7 +98,7 @@ namespace GScrape
             foreach (var result in itemsToRemove)
             {
                 stringBuilder.AppendLine(
-                    $"Name: {_cache[request.ResultId].ScrapeCacheItems[result].ItemName}{Environment.NewLine}Link: {_cache[request.ResultId].ScrapeCacheItems[result].ItemLink}{Environment.NewLine}");
+                    $"Name: {Cache[request.ResultId][result].Item.Name}{Environment.NewLine}Link: {Cache[request.ResultId][result].Item.Link}{Environment.NewLine}");
             }
 
             var bodyBuilder = new BodyBuilder { TextBody = stringBuilder.ToString() };
@@ -106,44 +107,28 @@ namespace GScrape
             await _emailer.SendEmail(message, cancellationToken);
         }
 
-        private void PopulateInStockCache(ScrapeResult request, IEnumerable<ScrapeItem> newScrapeItems)
+        protected virtual void PopulateCache(ScrapeResult<T> request, IEnumerable<T> scrapeItems, IEnumerable<T> notificationItems)
         {
-            var now = DateTime.Now;
-            var newScrapeCacheItems = new Dictionary<string, ScrapeCacheItem>();
-
-            foreach (var scrapeItem in newScrapeItems)
+            var requestCache = Cache.GetOrAdd(request.ResultId, new ConcurrentDictionary<string, ScrapeCacheItem>());
+            
+            foreach (var scrapeItem in notificationItems)
             {
-                newScrapeCacheItems.Add(scrapeItem.ItemId, new ScrapeCacheItem(scrapeItem.ItemName, scrapeItem.ItemLink, scrapeItem.ItemId, now));
+                var scrapeCacheItem = new ScrapeCacheItem(scrapeItem);
+                requestCache.AddOrUpdate(scrapeItem.ItemId, scrapeCacheItem, (s, item) => scrapeCacheItem );
             }
-
-            if (_cache.TryAdd(request.ResultId, new ScrapeCache(request.RequestName, newScrapeCacheItems)))
-            {
-                return;
-            }
-
-            _cache[request.ResultId] = new ScrapeCache(request.RequestName, newScrapeCacheItems);
         }
 
-        private class ScrapeCache
+        protected class ScrapeCacheItem
         {
-            public ScrapeCache(string requestName, Dictionary<string, ScrapeCacheItem> scrapeCacheItems)
+            public ScrapeCacheItem(T item, DateTime? lastUpdated = null)
             {
-                RequestName = requestName;
-                ScrapeCacheItems = scrapeCacheItems;
+                Item = item;
+                LastUpdated = lastUpdated ?? DateTime.Now;
             }
 
-            public string RequestName { get; }
-            public Dictionary<string, ScrapeCacheItem> ScrapeCacheItems { get; }
-        }
+            public T Item { get; }
 
-        private class ScrapeCacheItem : ScrapeItem
-        {
-            public ScrapeCacheItem(string itemName, string itemLink, string itemId, DateTime lastInStock) : base(itemName, itemLink, itemId)
-            {
-                LastInStock = lastInStock;
-            }
-
-            public DateTime LastInStock { get; }
+            public DateTime LastUpdated { get; }
         }
     }
 }

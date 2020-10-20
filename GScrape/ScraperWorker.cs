@@ -1,5 +1,7 @@
 ﻿using GScrape.Requests;
 using GScrape.Requests.Amazon;
+using GScrape.Requests.Walmart;
+using GScrape.Results;
 using MediatR;
 using System.Threading.Tasks;
 
@@ -27,11 +29,14 @@ namespace GScrape
             // var officeDepotRequest = new NotificationRequest();
             // await _mediator.Send(officeDepotRequest);
 
-            // var bestBuyNotificationRequest = new NotificationRequest(() => new Requests.BestBuy.ScrapeRequest());
+            // var bestBuyNotificationRequest = new NotificationRequest(() => new Requests.BestBuy.ItemPriceScrapeRequest());
             // await _mediator.Send(bestBuyNotificationRequest);
 
-            var amazonNotificationRequest = new NotificationRequest(() => new ScrapeRequest());
-            await _mediator.Send(amazonNotificationRequest);
+            // var amazonNotificationRequest = new NotificationRequest<ScrapeItem>(() => new ScrapeRequest());
+            // await _mediator.Send(amazonNotificationRequest);
+            
+            var walmartNotificationRequest = new NotificationRequest<ItemPriceScrapeItem>(() => new ItemPriceScrapeRequest());
+            await _mediator.Send(walmartNotificationRequest);
         }
     }
 }

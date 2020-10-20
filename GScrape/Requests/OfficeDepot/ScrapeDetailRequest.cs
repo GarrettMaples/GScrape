@@ -10,7 +10,7 @@ using System.Web;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class ScrapeDetailRequest : IRequest<ScrapeResult>
+    public class ScrapeDetailRequest : IRequest<ScrapeResult<ScrapeItem>>
     {
         public ScrapeDetailRequest(string name, string html)
         {
@@ -22,7 +22,7 @@ namespace GScrape.Requests.OfficeDepot
         public string Html { get; }
     }
 
-    internal class ScrapeDetailRequestHandler : RequestHandler<ScrapeDetailRequest, ScrapeResult>
+    internal class ScrapeDetailRequestHandler : RequestHandler<ScrapeDetailRequest, ScrapeResult<ScrapeItem>>
     {
         private const string OfficeDepotBaseUrl = "https://www.officedepot.com";
         private const string PartialItemUrl = "/a/products/";
@@ -32,13 +32,13 @@ namespace GScrape.Requests.OfficeDepot
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
             TimeSpan.FromSeconds(10));
 
-        protected override ScrapeResult Handle(ScrapeDetailRequest request)
+        protected override ScrapeResult<ScrapeItem> Handle(ScrapeDetailRequest request)
         {
             var itemInfoJson = GetItemInfoDetailJson(request.Html);
 
             var scrapeItems = GetItems(itemInfoJson);
 
-            return new ScrapeResult(request.Name, scrapeItems.ToAsyncEnumerable());
+            return new ScrapeResult<ScrapeItem>(request.Name, scrapeItems.ToAsyncEnumerable());
         }
 
         private IEnumerable<ScrapeItem> GetItems(ItemInfoDetailPayload itemInfoPayload)

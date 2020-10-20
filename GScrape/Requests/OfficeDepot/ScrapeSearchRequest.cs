@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class ScrapeSearchRequest : IRequest<ScrapeResult>
+    public class ScrapeSearchRequest : IRequest<ScrapeResult<ScrapeItem>>
     {
         public ScrapeSearchRequest(string name, string html)
         {
@@ -23,7 +23,7 @@ namespace GScrape.Requests.OfficeDepot
         public string Html { get; }
     }
 
-    internal class ScrapeSearchRequestHandler : IRequestHandler<ScrapeSearchRequest, ScrapeResult>
+    internal class ScrapeSearchRequestHandler : IRequestHandler<ScrapeSearchRequest, ScrapeResult<ScrapeItem>>
     {
         private static readonly Regex _skuRegex = new Regex(
             @"<input[^>]+?type=""hidden""[^>]+?id=""hiddenSkuId\d+?""[^>]+?value=""(\d*?)""[^>]*?>",
@@ -39,13 +39,13 @@ namespace GScrape.Requests.OfficeDepot
             _officeDepotClient = officeDepotClient;
         }
 
-        public async Task<ScrapeResult> Handle(ScrapeSearchRequest request, CancellationToken cancellationToken)
+        public async Task<ScrapeResult<ScrapeItem>> Handle(ScrapeSearchRequest request, CancellationToken cancellationToken)
         {
             var itemInfoJson = await GetItemInfoJson(request.Html);
 
             var scrapeItems = GetItems(itemInfoJson);
 
-            return new ScrapeResult(request.Name, scrapeItems.ToAsyncEnumerable());
+            return new ScrapeResult<ScrapeItem>(request.Name, scrapeItems.ToAsyncEnumerable());
         }
 
         private IEnumerable<ScrapeItem> GetItems(ItemInfoPayload itemInfoPayload)

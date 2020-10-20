@@ -1,4 +1,5 @@
 ﻿using GScrape.Clients;
+using GScrape.Requests;
 using GScrape.Requests.OfficeDepot;
 using GScrape.Results;
 using MediatR;
@@ -15,21 +16,26 @@ using ScrapeRequestHandler = GScrape.Requests.BestBuy.ScrapeRequestHandler;
 
 namespace GScrape
 {
-    public static class Bootstrapper
+    public static class ServiceCollectionExtensions
     {
-        public static void Boostrap(IServiceCollection services)
+        public static IServiceCollection AddGScrape(this IServiceCollection services)
         {
             services
                 .AddLogging(x => x.AddConsole())
                 .AddLogging()
                 .AddScoped<IScraperWorker, ScraperWorker>()
                 .AddScoped<IEmailer, Emailer>()
-                .AddScoped<IPipelineBehavior<ScrapeResult, Unit>, NotificationCacheBehavior>()
+                .AddScoped(typeof(IRequestHandler<NotificationRequest<ScrapeItem>, Unit>), typeof(NotificationRequestHandler<ScrapeItem>))
+                .AddScoped(typeof(IRequestHandler<NotificationRequest<ItemPriceScrapeItem>, Unit>), typeof(NotificationRequestHandler<ItemPriceScrapeItem>))
+                .AddSingleton(typeof(IPipelineBehavior<ScrapeResult<ScrapeItem>, Unit>), typeof(NotificationCacheBehavior<ScrapeItem>))
+                .AddSingleton(typeof(IPipelineBehavior<ScrapeResult<ItemPriceScrapeItem>, Unit>), typeof(PriceDecreaseNotificationCacheBehavior))
                 .AddLogging(x => x.AddConsole());
 
             services.AddMediatR(typeof(Program).Assembly);
 
             ConfigureHttpClients(services);
+
+            return services;
         }
 
         private static void ConfigureHttpClients(IServiceCollection serviceCollection)
@@ -89,6 +95,16 @@ namespace GScrape
                 .ConfigureHttpClient(client =>
                 {
                     client.BaseAddress = new Uri(Requests.Amazon.ScrapeRequestHandler.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
+                    client.DefaultRequestHeaders.Add("Accept-Encoding", new[] { "UTF-8" });
+                })
+                .AddPolicyHandler(retryPolicy)
+                .AddPolicyHandler(timeoutPolicy); // We place the timeoutPolicy inside the retryPolicy, to make it time out each try.
+            
+            serviceCollection.AddRefitClient<IWalmartClient>()
+                .ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri(Requests.Walmart.ItemPriceScrapeRequestHandler.BaseUrl);
                     client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all tries
                     client.DefaultRequestHeaders.Add("Accept-Encoding", new[] { "UTF-8" });
                 })
