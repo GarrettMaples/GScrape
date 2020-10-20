@@ -1,5 +1,5 @@
 ﻿using GScrape.Requests;
-using GScrape.Requests.BestBuy;
+using GScrape.Requests.Walmart;
 using GScrape.Results;
 using Hangfire;
 using MediatR;
@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace GScrape.Hangfire.Jobs
 {
-    internal class ScrapeBestBuyJob : IHangfireJob
+    public class ScrapeWalmartPricesJob : IHangfireJob
     {
         private readonly IMediator _mediator;
 
-        public ScrapeBestBuyJob(IMediator mediator)
+        public ScrapeWalmartPricesJob(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -20,7 +20,7 @@ namespace GScrape.Hangfire.Jobs
 
         public async Task DoWork()
         {
-            var notificationRequest = new NotificationRequest<ScrapeItem>(() => new ScrapeRequest());
+            var notificationRequest = new NotificationRequest<ItemPriceScrapeItem>(() => new ItemPriceScrapeRequest());
             await _mediator.Send(notificationRequest);
         }
     }

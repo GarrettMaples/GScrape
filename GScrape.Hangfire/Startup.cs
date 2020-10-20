@@ -37,7 +37,7 @@ namespace GScrape.Hangfire
 
             services.AddMediatR(typeof(Program).Assembly);
 
-            Bootstrapper.Boostrap(services);
+            services.AddGScrape();
 
             var hangfireJobType = typeof(IHangfireJob);
             foreach (var type in hangfireJobType.Assembly.GetTypes().Where(x => !x.IsInterface && hangfireJobType.IsAssignableFrom(x)))

@@ -10,11 +10,11 @@ using System.Text.RegularExpressions;
 
 namespace GScrape.Requests.Amazon
 {
-    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
     }
 
-    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
         private static readonly Regex _productPayloadRegex =
             new Regex(@"var\s+?config\s+?=(\s*?{.+?});", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(15));
@@ -30,7 +30,7 @@ namespace GScrape.Requests.Amazon
             _logger = logger;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult<ScrapeItem>> Handle(ScrapeRequest request)
         {
             var itemSearchRequest = new ItemSearchRequest();
             var itemSearches = await _mediator.Send(itemSearchRequest);
@@ -47,7 +47,7 @@ namespace GScrape.Requests.Amazon
                 var payload = JsonSerializer.Deserialize<Payload>(payloadJsonMatches[1].Groups[1].Value);
                 var scrapeItems = ScrapeItems(payload);
 
-                yield return new ScrapeResult(itemSearch.Name, scrapeItems.ToAsyncEnumerable());
+                yield return new ScrapeResult<ScrapeItem>(itemSearch.Name, scrapeItems.ToAsyncEnumerable());
             }
         }
 

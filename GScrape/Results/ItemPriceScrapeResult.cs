@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,49 +12,46 @@ using System.Threading.Tasks;
 
 namespace GScrape.Results
 {
-    public class ScrapeResult<T> : IRequest where T : ScrapeItem
+    // public class ItemPriceScrapeResult : IRequest, IScrapeResult
+    // {
+    //     public ItemPriceScrapeResult(string requestName, IAsyncEnumerable<ItemPriceScrapeItem> scrapeItems)
+    //     {
+    //         RequestName = requestName;
+    //         ScrapeItems = scrapeItems ?? AsyncEnumerable.Empty<ItemPriceScrapeItem>();
+    //     }
+    //
+    //     public string RequestName { get; }
+    //
+    //     public IAsyncEnumerable<ItemPriceScrapeItem> ScrapeItems { get; set; }
+    //
+    //     public string ResultId { get; } = nameof(ScrapeResult);
+    // }
+
+    public class ItemPriceScrapeItem : ScrapeItem
     {
-        public ScrapeResult(string requestName, IAsyncEnumerable<T> scrapeItems)
+        public ItemPriceScrapeItem(string name, string link, string itemId, decimal price)
+            : base(name, link, itemId)
         {
-            RequestName = requestName;
-            ScrapeItems = scrapeItems ?? AsyncEnumerable.Empty<T>();
+            Price = price;
         }
 
-        public string RequestName { get; }
-
-        public IAsyncEnumerable<T> ScrapeItems { get; set; }
-
-        public string ResultId { get; } = typeof(ScrapeResult<T>).FullName;
+        public decimal Price { get; }
     }
 
-    public class ScrapeItem
-    {
-        public ScrapeItem(string name, string link, string itemId)
-        {
-            Name = name;
-            Link = link;
-            ItemId = itemId;
-        }
-
-        public string Name { get; }
-        public string Link { get; }
-        public string ItemId { get; }
-    }
-
-    internal class ScrapeResultHandler : IRequestHandler<ScrapeResult<ScrapeItem>>
+    internal class ItemPriceScrapeResultHandler : IRequestHandler<ScrapeResult<ItemPriceScrapeItem>>
     {
         private readonly IConfiguration _configuration;
         private readonly IEmailer _emailer;
         private readonly ILogger<ScrapeResultHandler> _logger;
 
-        public ScrapeResultHandler(IConfiguration configuration, IEmailer emailer, ILogger<ScrapeResultHandler> logger)
+        public ItemPriceScrapeResultHandler(IConfiguration configuration, IEmailer emailer, ILogger<ScrapeResultHandler> logger)
         {
             _configuration = configuration;
             _emailer = emailer;
             _logger = logger;
         }
 
-        public async Task<Unit> Handle(ScrapeResult<ScrapeItem> request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(ScrapeResult<ItemPriceScrapeItem> request, CancellationToken cancellationToken)
         {
             var results = await request.ScrapeItems.ToListAsync(cancellationToken);
 
@@ -74,12 +73,13 @@ namespace GScrape.Results
                 message.To.Add(to);
             }
 
-            message.Subject = $"{request.RequestName} Stock Found!";
+            message.Subject = $"{request.RequestName} Price Decrease Detected!";
 
             var stringBuilder = new StringBuilder();
-            foreach (var result in results)
+            foreach (var result in results.Cast<ItemPriceScrapeItem>())
             {
                 stringBuilder.AppendLine($"Name: {result.Name}");
+                stringBuilder.AppendLine($"Price: {result.Price:C}");
                 stringBuilder.AppendLine($"Link: {result.Link}");
             }
 

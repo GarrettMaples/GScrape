@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace GScrape.Requests.OfficeDepot
 {
-    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult>>
+    public class ScrapeRequest : IRequest<IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
     }
 
-    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult>>
+    internal class ScrapeRequestHandler : RequestHandler<ScrapeRequest, IAsyncEnumerable<ScrapeResult<ScrapeItem>>>
     {
         private readonly IMediator _mediator;
 
@@ -17,7 +17,7 @@ namespace GScrape.Requests.OfficeDepot
             _mediator = mediator;
         }
 
-        protected override async IAsyncEnumerable<ScrapeResult> Handle(ScrapeRequest request)
+        protected override async IAsyncEnumerable<ScrapeResult<ScrapeItem>> Handle(ScrapeRequest request)
         {
             var req = new ItemSearchRequest();
 
