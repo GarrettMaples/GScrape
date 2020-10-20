@@ -857,7 +857,7 @@ namespace GScrape.Requests.Walmart.Json
         public string GlobalProductAvailability { get; set; }
 
         [JsonPropertyName("urgentQuantity")]
-        public int UrgentQuantity { get; set; }
+        public int? UrgentQuantity { get; set; }
 
         [JsonPropertyName("orderPreselectedQuantity")]
         public int OrderPreselectedQuantity { get; set; }
