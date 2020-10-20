@@ -12,21 +12,6 @@ using System.Threading.Tasks;
 
 namespace GScrape.Results
 {
-    // public class ItemPriceScrapeResult : IRequest, IScrapeResult
-    // {
-    //     public ItemPriceScrapeResult(string requestName, IAsyncEnumerable<ItemPriceScrapeItem> scrapeItems)
-    //     {
-    //         RequestName = requestName;
-    //         ScrapeItems = scrapeItems ?? AsyncEnumerable.Empty<ItemPriceScrapeItem>();
-    //     }
-    //
-    //     public string RequestName { get; }
-    //
-    //     public IAsyncEnumerable<ItemPriceScrapeItem> ScrapeItems { get; set; }
-    //
-    //     public string ResultId { get; } = nameof(ScrapeResult);
-    // }
-
     public class ItemPriceScrapeItem : ScrapeItem
     {
         public ItemPriceScrapeItem(string name, string link, string itemId, decimal price)
